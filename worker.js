@@ -1,53 +1,48 @@
-importScripts('https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.9.0/math.min.js');
+function mandelbrot(a, b, max_iter) {
+    let ca = a;
+    let cb = b;
 
-const RE_START = -2;
-const RE_END = 1;
-const IM_START = -1;
-const IM_END = 1;
-
-const WIDTH = 600;
-const HEIGHT = 400;
-
-const MAX_ITER = 50;
-
-function mandelbrot(c, max_iter) {
-    let z = math.complex(0);
     let n = 0;
-
-    while (math.abs(z) <= 2 && n < max_iter) {
-        z = math.multiply(z, z).add(c);
+    while (Math.abs(a + b) <= 16 && n < max_iter) {
+        let aa = a * a - b * b;
+        let bb = 2 * a * b;
+        a = aa + ca;
+        b = bb + cb;
         n++;
     }
     return n;
 }
 
 onmessage = function(e) {
-    let xStart = e.data[0];
-    let xEnd = e.data[1];
-    let yStart = e.data[2];
-    let yEnd = e.data[3];
-    let step = e.data[4];
+    let yStart = e.data[0];
+    let yEnd = e.data[1];
+    let minXVal = e.data[2];
+    let maxXVal = e.data[3];
+    let minYVal = e.data[4];
+    let maxYVal = e.data[5];
+    let width = e.data[6];
+    let height = e.data[7];
+    let maxIter = e.data[8];
 
     let pixels = [];
 
     let result = {
-        xStart: xStart,
         yStart : yStart,
-        step : step,
         pixels : pixels
     };
 
-    console.log('Message received from main script, x:' + xStart + " until " + xEnd + " y:" + yStart + " until " + yEnd + " step: " + step);
+    console.log(yStart + " " + yEnd + " " + minXVal + " " + maxXVal + " " + minYVal + " " + maxYVal + " " + width + " " + height + " " + maxIter);
 
     // zoom : shift x / y and loop over doubles with shorter range
-    for (let x = xStart; x < xEnd; x += step) {
+    for (let x = 0; x < width; x += 1) {
         let tmp = [];
-        for (let y = yStart; y < yEnd; y += step) {
-            let c = math.complex(RE_START + (x / WIDTH) * (RE_END - RE_START), IM_START + (y / HEIGHT) * (IM_END - IM_START));
+        for (let y = yStart; y < yEnd; y += 1) {
+            let a = minXVal + (x / width) * (maxXVal - minXVal);
+            let b = minYVal + (y / height) * (maxYVal - minYVal);
 
-            let n = mandelbrot(c, MAX_ITER);
+            let n = mandelbrot(a, b, maxIter);
 
-            let hue = parseInt(360 * n / MAX_ITER);
+            let hue = parseInt(360 * n / maxIter);
             //let saturation = 100;
             //let light = 50;
 
