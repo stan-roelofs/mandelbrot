@@ -5,6 +5,10 @@ let maxXVal = 3.5;
 let minYVal = -2.5;
 let maxYVal = 2.5;
 let numWorkers = 10;
+let workers = [];
+let scale = 1.0;
+let xPos = 0;
+let yPos = 0;
 
 window.onload = function() {
     const WIDTH = 400;//window.innerWidth;
@@ -19,48 +23,73 @@ window.onload = function() {
     // TODO: remaining pixels
 
     function redraw() {
+
+        for (let i = 0; i < numWorkers; i++) {
+            if (workers[i] !== undefined) {
+                workers[i].terminate();
+            }
+
+            workers[i] = new Worker("worker.js");
+
+            workers[i].onmessage = function(e) {
+                console.log(i);
+
+                for (let x = 0; x < WIDTH; x++) {
+                    for (let y = 0; y < step; y++) {
+                        context.fillStyle = "hsl(" + e.data.pixels[x][y] + ", " + 100 + "%, " + 50 + "%)";
+                        //context.fillStyle = "rgb(" + e.data.pixels[i][j] + ", " +  e.data.pixels[i][j] + ", " +  e.data.pixels[i][j] + ")";
+                        context.fillRect(x, e.data.yStart + y, 1, 1);
+                    }
+                }
+            }
+        }
+
         context.clearRect(0, 0, WIDTH, HEIGHT);
 
+        for (let i = 0; i < numWorkers; i++) {
+            //workers[i].terminate();
+        }
+
         for (let y = 0; y < HEIGHT; y += step) {
-            const worker = new Worker("worker.js");
             let yStart = y;
             let yEnd = y + step;
 
-            worker.postMessage([yStart, yEnd, minXVal, maxXVal, minYVal, maxYVal, WIDTH, HEIGHT, MAX_ITER]);
-
-            worker.onmessage = function(e) {
-                for (let i = 0; i < WIDTH; i++) {
-                    for (let j = 0; j < step; j++) {
-                        context.fillStyle = "hsl(" + e.data.pixels[i][j] + ", " + 100 + "%, " + 50 + "%)";
-                        //context.fillStyle = "rgb(" + e.data.pixels[i][j] + ", " +  e.data.pixels[i][j] + ", " +  e.data.pixels[i][j] + ")";
-                        context.fillRect(i, e.data.yStart + j, 1, 1);
-                    }
-                }
-                worker.terminate();
-            }
+            workers[y % step].postMessage([yStart, yEnd, minXVal * scale + xPos, maxXVal * scale + xPos, minYVal * scale + yPos, maxYVal * scale + yPos, WIDTH, HEIGHT, MAX_ITER]);
         }
     }
 
-    const slider1 = document.getElementById("minXVal");
-    slider1.addEventListener("mouseup", function() {
-        minXVal = parseFloat(slider1.value);
+    document.onkeypress = function(e) {
+
+        const newScale = 0.5 * scale;
+
+        switch(e.code) {
+            case "KeyA":
+                xPos -= newScale;
+                break;
+
+            case "KeyD":
+                xPos += newScale;
+                break;
+
+            case "KeyW":
+                yPos -= newScale;
+                break;
+
+            case "KeyS":
+                yPos += newScale;
+                break;
+
+            case "KeyZ":
+                scale -= newScale;
+                break;
+
+            case "KeyX":
+                scale += newScale;
+                break;
+        }
+
         redraw();
-    });
-    const slider2 = document.getElementById("maxXVal");
-    slider2.addEventListener("mouseup", function() {
-        maxXVal = parseFloat(slider2.value);
-        redraw();
-    });
-    const slider3 = document.getElementById("minYVal");
-    slider3.addEventListener("mouseup", function() {
-        minYVal = parseFloat(slider3.value);
-        redraw();
-    });
-    const slider4 = document.getElementById("maxYVal");
-    slider4.addEventListener("mouseup", function() {
-        maxYVal = parseFloat(slider4.value);
-        redraw();
-    });
+    };
 
     redraw();
 };
