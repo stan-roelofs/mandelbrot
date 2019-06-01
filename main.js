@@ -4,15 +4,22 @@ let minXVal = -3.5;
 let maxXVal = 3.5;
 let minYVal = -2.5;
 let maxYVal = 2.5;
-let numWorkers = 10;
+let numWorkers = 8;
 let workers = [];
 let scale = 1.0;
 let xPos = 0;
 let yPos = 0;
 
 window.onload = function() {
-    const WIDTH = 400;//window.innerWidth;
-    const HEIGHT = 400;//window.innerHeight;
+    const buttonLeft = document.getElementById("left");
+    const buttonRight = document.getElementById("right");
+    const buttonDown = document.getElementById("down");
+    const buttonUp = document.getElementById("up");
+    const buttonIn = document.getElementById("in");
+    const buttonOut = document.getElementById("out");
+
+    const WIDTH = 200;
+    const HEIGHT = 200;
     const canvas = document.getElementById("cnv");
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
@@ -58,9 +65,44 @@ window.onload = function() {
         }
     }
 
-    document.onkeypress = function(e) {
+    buttonLeft.onclick = function() {
+        const newScale = getNewScale();
+        xPos -= newScale;
+        redraw();
+    };
 
-        const newScale = 0.5 * scale;
+    buttonRight.onclick = function() {
+        const newScale = getNewScale();
+        xPos += newScale;
+        redraw();
+    };
+
+    buttonUp.onclick = function() {
+        const newScale = getNewScale();
+        yPos -= newScale;
+        redraw();
+    };
+
+    buttonDown.onclick = function() {
+        const newScale = getNewScale();
+        yPos += newScale;
+        redraw();
+    };
+
+    buttonIn.onclick = function() {
+        const newScale = getNewScale();
+        scale -= newScale;
+        redraw();
+    };
+
+    buttonOut.onclick = function() {
+        const newScale = getNewScale();
+        scale += newScale;
+        redraw();
+    };
+
+    document.onkeypress = function(e) {
+        const newScale = getNewScale();
 
         switch(e.code) {
             case "KeyA":
@@ -93,3 +135,11 @@ window.onload = function() {
 
     redraw();
 };
+
+function getNewScale() {
+    return 0.5 * scale;
+}
+
+function setupControls() {
+
+}
